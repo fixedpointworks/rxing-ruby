@@ -42,7 +42,6 @@ Gemfile.lock
 # Rust specific
 /target
 **/*.rs.bk
-Cargo.lock
 
 # Project specific
 /lib/**/*.bundle
