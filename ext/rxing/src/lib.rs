@@ -22,10 +22,10 @@ impl BarcodeResult {
         &self.format
     }
 
-    fn points(&self) -> Result<RArray, Error> {
-        let array = RArray::new();
-        for (x, y) in &self.points {
-            let point = RArray::new();
+    fn points(ruby: &Ruby, rb_self: &Self) -> Result<RArray, Error> {
+        let array = ruby.ary_new();
+        for (x, y) in &rb_self.points {
+            let point = ruby.ary_new();
             point.push(*x)?;
             point.push(*y)?;
             array.push(point)?;
@@ -42,8 +42,8 @@ impl BarcodeReader {
         BarcodeReader
     }
 
-    fn process_results(results: Vec<rxing::RXingResult>) -> Result<RArray, Error> {
-        let array = RArray::new();
+    fn process_results(ruby: &Ruby, results: Vec<rxing::RXingResult>) -> Result<RArray, Error> {
+        let array = ruby.ary_new();
         for result in results {
             let points = result.getPoints();
             if points.len() >= 2 {
@@ -61,26 +61,26 @@ impl BarcodeReader {
         Ok(array)
     }
 
-    fn read_from_file(&self, path: String) -> Result<RArray, Error> {
+    fn read_from_file(ruby: &Ruby, _rb_self: &Self, path: String) -> Result<RArray, Error> {
         let results = rxing::helpers::detect_multiple_in_file(&path)
-            .map_err(|e| Error::new(magnus::exception::runtime_error(), format!("Failed to read file: {}", e)))?;
-        Self::process_results(results)
+            .map_err(|e| Error::new(ruby.exception_runtime_error(), format!("Failed to read file: {}", e)))?;
+        Self::process_results(ruby, results)
     }
 
-    fn read_from_bytes(&self, data: RString) -> Result<RArray, Error> {
+    fn read_from_bytes(ruby: &Ruby, _rb_self: &Self, data: RString) -> Result<RArray, Error> {
         let bytes = unsafe {
           // SAFETY: We are only reading byte data and will not modify it
           // During this function call, the Ruby string will not be modified
             data.as_slice()
         };
         let img = image::load_from_memory(bytes)
-            .map_err(|e| Error::new(magnus::exception::runtime_error(), format!("Failed to load image: {}", e)))?;
+            .map_err(|e| Error::new(ruby.exception_runtime_error(), format!("Failed to load image: {}", e)))?;
         let luma = img.to_luma8();
         let width = luma.width();
         let height = luma.height();
         let results = rxing::helpers::detect_multiple_in_luma(luma.into_raw(), width, height)
-            .map_err(|e| Error::new(magnus::exception::runtime_error(), format!("Failed to detect barcodes: {}", e)))?;
-        Self::process_results(results)
+            .map_err(|e| Error::new(ruby.exception_runtime_error(), format!("Failed to detect barcodes: {}", e)))?;
+        Self::process_results(ruby, results)
     }
 }
 
