@@ -46,6 +46,13 @@ class RxingTest < Minitest::Test
     assert_equal "HELLO-RXING", result.text
   end
 
+  def test_read_from_bytes_in_parallel_threads
+    image_data = File.read(File.join(FIXTURES_DIR, "code128.png"), mode: "rb")
+    texts = 8.times.map { Thread.new { @reader.read_from_bytes(image_data).map(&:text) } }.map(&:value)
+
+    assert_equal [["HELLO-RXING"]] * 8, texts
+  end
+
   def test_invalid_file_path
     assert_raises(RuntimeError) do
       @reader.read_from_file("nonexistent.png")

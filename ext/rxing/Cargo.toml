@@ -7,11 +7,11 @@ edition = "2021"
 crate-type = ["cdylib"]
 
 [dependencies]
-magnus = "0.8.4"
+magnus = { version = "0.8.4", features = ["rb-sys"] }
 rb-sys = { version = "*", default-features = false, features = [
   "stable-api-compiled-fallback",
 ] }
-rxing = "0.7.1"
+rxing = "0.9.4"
 image = "0.25.5"
 
 [build-dependencies]
