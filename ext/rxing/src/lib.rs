@@ -1,5 +1,5 @@
 use magnus::{function, method, prelude::*, Error, Ruby, RString, RArray};
-use rxing::{self, ResultPoint};
+use rxing;
 use image;
 
 #[magnus::wrap(class = "Rxing::BarcodeResult")]
@@ -48,7 +48,7 @@ impl BarcodeReader {
             let points = result.getPoints();
             if points.len() >= 2 {
                 let points: Vec<_> = points.iter()
-                    .map(|p| (p.getX() as i32, p.getY() as i32))
+                    .map(|p| (p.x as i32, p.y as i32))
                     .collect();
                 let barcode = BarcodeResult::new(
                     result.getText().to_string(),
